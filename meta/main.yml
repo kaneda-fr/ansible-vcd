@@ -31,13 +31,13 @@ galaxy_info:
   # the ones that apply to your role. If you don't see your
   # platform on this list, let us know and we'll get it added!
   #
-  #platforms:
+  platforms:
   - name: CentOS
-   versions:
-     - 7.1
+    versions:
+    - 7.1
   - name: Red Hat Enterprise Linux
-   versions:
-     - 7.1
+    versions:
+    - 7.1
   #- name: OpenBSD
   #  versions:
   #  - all
