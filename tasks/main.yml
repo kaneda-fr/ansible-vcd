@@ -1,2 +1,23 @@
 ---
 # tasks file for ansible-vcd
+- name: Create "{{ var_vm.name }}"
+     vca_vapp:
+       state: "{{ vm_state }}"
+       operation: "{{ vm_operation }}"
+
+       host: "{{ vcd_url }}"
+       org: "{{ org_name }}"
+       vdc_name: "{{ vdc_name }}"
+       username: "{{ vcd_username }}"
+       password: "{{ vcd_pwd }}"
+       api_version: '5.6'
+       service_type: vcd
+
+       catalog_name: "{{ vcd_catalog }}"
+       template_name: "{{ vcd_os_template }}"
+
+       vapp_name: "{{ var_vm.name }}"
+       vm_name: "{{ var_vm.name }}"
+       vm_cpus: "{{ var_vm.cpu }}"
+       vm_memory: "{{ var_vm.mem }}"
+       network_name: "{{ var_vm.net }}"
