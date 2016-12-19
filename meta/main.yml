@@ -1,7 +1,7 @@
 galaxy_info:
-  author: your name
+  author: Sebastien Lacoste-Seris
   description: your description
-  company: your company (optional)
+  company: SITA
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value
@@ -14,9 +14,9 @@ galaxy_info:
   # - GPLv3
   # - Apache
   # - CC-BY
-  license: license (GPLv2, CC-BY, etc)
+  license: MIT
 
-  min_ansible_version: 1.2
+  min_ansible_version: 2.2
 
   # Optionally specify the branch Galaxy will use when accessing the GitHub
   # repo for this role. During role install, if no tags are available,
@@ -32,6 +32,12 @@ galaxy_info:
   # platform on this list, let us know and we'll get it added!
   #
   #platforms:
+  - name: CentOS
+   versions:
+     - 7.1
+  - name: Red Hat Enterprise Linux
+   versions:
+     - 7.1
   #- name: OpenBSD
   #  versions:
   #  - all
