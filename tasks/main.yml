@@ -1,67 +1,78 @@
 ---
 # tasks file for ansible-vcd
-- name: Create "{{ var_vm.name }}"
-     vca_vapp:
-       state: "{{ vm_state }}"
-       operation: "{{ vm_operation }}"
+- name: Create VM
+  vca_vapp:
+    state: present
+    operation: noop 
 
-       host: "{{ vcd_url }}"
-       org: "{{ org_name }}"
-       vdc_name: "{{ vdc_name }}"
-       username: "{{ vcd_username }}"
-       password: "{{ vcd_pwd }}"
-       api_version: '5.6'
-       service_type: vcd
+    host: "{{ vcd_url }}"
+    org: "{{ org_name }}"
+    vdc_name: "{{ vdc_name }}"
+    username: "{{ vcd_username }}"
+    password: "{{ vcd_pwd }}"
+    api_version: '5.6'
+    service_type: vcd
 
-       catalog_name: "{{ vcd_catalog }}"
-       template_name: "{{ vcd_os_template }}"
+    catalog_name: "{{ vcd_catalog }}"
+    template_name: "{{ vcd_os_template }}"
 
-       vapp_name: "{{ var_vm.name }}"
-       vm_name: "{{ var_vm.name }}"
-       vm_cpus: "{{ var_vm.cpu }}"
-       vm_memory: "{{ var_vm.mem }}"
-       network_name: "{{ var_vm.net }}"
+    vapp_name: "{{ vm_name }}"
+    vm_name: "{{ vm_name }}"
+    vm_cpus: "{{ vm_cpu }}"
+    vm_memory: "{{ vm_mem }}"
+    network_name: "{{ vm_net }}"
 
-   - name: Create "{{ var_vm.name }}"
-     vca_vapp:
-       state: "{{ vm_state }}"
-       operation: "{{ vm_operation }}"
+  register: vapp
 
-       host: "{{ vcd_url }}"
-       org: "{{ org_name }}"
-       vdc_name: "{{ vdc_name }}"
-       username: "{{ vcd_username }}"
-       password: "{{ vcd_pwd }}"
-       api_version: '5.6'
-       service_type: vcd
+#- debug:
+#        msg: "VM {{ inventory_hostname }} got IP {{vm_ip}}"
 
-       catalog_name: "Public catalog"
-       template_name: CentOS_6.5_64bits
+- name: PowerOn VM
+  vca_vapp:
+    state: present
+    operation: poweron
 
-       vapp_name: "{{ var_vm.name }}"
-       vm_name: "{{ var_vm.name }}"
-       vm_cpus: "{{ var_vm.cpu }}"
-       vm_memory: "{{ var_vm.mem }}"
-       network_name: "{{ var_vm.net }}"
+    host: "{{ vcd_url }}"
+    org: "{{ org_name }}"
+    vdc_name: "{{ vdc_name }}"
+    username: "{{ vcd_username }}"
+    password: "{{ vcd_pwd }}"
+    api_version: '5.6'
+    service_type: vcd
 
-   - name: Create "{{ var_vm.name }}"
-     vca_vapp:
-       state: "{{ vm_state }}"
-       operation: "{{ vm_operation }}"
+    vapp_name: "{{ vm_name }}"
 
-       host: "{{ vcd_url }}"
-       org: "{{ org_name }}"
-       vdc_name: "{{ vdc_name }}"
-       username: "{{ vcd_username }}"
-       password: "{{ vcd_pwd }}"
-       api_version: '5.6'
-       service_type: vcd
+- name: Waiting for VM to boot (min 90s)
+  wait_for:
+    port: 22
+    host: "{{ vm_ip }}"
+    search_regex: SSH
+    #delay: 90
+    #Sleep available from version 2.3
+    #sleep: 10
 
-       catalog_name: "Public catalog"
-       template_name: CentOS_6.5_64bits
+- name: get SSH public key
+  shell: "ssh-keyscan {{ vm_ip }} | grep -v  '#.*' | head -1"
+  register: keyscan
+  changed_when: False
 
-       vapp_name: "{{ var_vm.name }}"
-       vm_name: "{{ var_vm.name }}"
-       vm_cpus: "{{ var_vm.cpu }}"
-       vm_memory: "{{ var_vm.mem }}"
-       network_name: "{{ var_vm.net }}"
+#- debug:
+#        msg: "key {{ keyscan }}"
+
+- name: Add/update the public key in the '{{ ssh_known_hosts_file }}'
+  known_hosts:
+    name: "{{ vm_ip }}"
+    key: "{{ keyscan.stdout }}"
+    path: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
+  when: 
+    - not keyscan | skipped
+
+- name: Trying to log into VM (using ssh key)
+  ping:
+  register: test_login
+
+#- name: Setting Hostname
+#  delegate_to: "{{ vm_name }}"
+#  hostname:
+#    name: "{{ vm_name }}"
+
