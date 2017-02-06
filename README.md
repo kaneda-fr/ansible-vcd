@@ -7,17 +7,39 @@ It is intended to be used through Galaxy
 Requirements
 ------------
 
-This role uses the vca (vmware) Cloud modules
+This role uses the vca (vmware) Cloud modules: http://docs.ansible.com/ansible/vca_vapp_module.html
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+The following variables must be set to connect to VCA (I recommend setting those in global_vars/all:
+
+vcd_url: 'URL of the VCD API'
+org_name: 'the name of your VCD organisation'
+vcd_username: 'username to connect to VCD'
+vcd_pwd: 'password to connect to VCD'
+
+The following variable are required to indicate where to deploy the VM:
+
+vdc_name: 'name of the target vDC'
+vcd_catalog: 'name of teh catalog where your OS template is stored'
+vcd_os_template: 'name of the OS template to use'
+
+For each server the following must be defined:
+
+vm_net: 'name of the org network where the Vm will be attached'
+vm_name: 'name of the VM/vApp'  - this also create a vAPP of the same name
+vm_operation: 'opeartion to be performed on the VM/vaPP'  - must one of the allowed valued for the operation parameters of the vca_vapp modules
+state: 'configures teh state of the VM/vApp' - must one of the allowed valued for the state parameters of the vca_vapp modules
+
+vm_cpu: 'number of vCPU for the VM'
+vm_mem: 'VM RAM in GB'
+
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+This roel doesn't depend on any other galaxy roles
 
 Example Playbook
 ----------------
@@ -26,7 +48,7 @@ Including an example of how to use your role (for instance, with variables passe
 
     - hosts: servers
       roles:
-         - { role: username.rolename, x: 42 }
+         - { role: kaneda-fr.vcd }
 
 License
 -------
