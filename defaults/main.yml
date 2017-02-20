@@ -1,2 +1,4 @@
 ---
 # defaults file for ansible-vcd
+
+ssh_key_file: ".ssh/id_rsa"

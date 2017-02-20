@@ -3,7 +3,7 @@
 - name: Create VM
   vca_vapp:
     state: present
-    operation: noop 
+    operation: noop
 
     host: "{{ vcd_url }}"
     org: "{{ org_name }}"
@@ -51,28 +51,38 @@
     #Sleep available from version 2.3
     #sleep: 10
 
-- name: get SSH public key
-  shell: "ssh-keyscan {{ vm_ip }} | grep -v  '#.*' | head -1"
-  register: keyscan
-  changed_when: False
+- name: Ensure .ssh directory exists
+  file:
+    path: "{{ lookup('env','HOME') + '/.ssh' }}"
+    state: directory
+    mode: 0700
 
-#- debug:
-#        msg: "key {{ keyscan }}"
-
-- name: Add/update the public key in the '{{ ssh_known_hosts_file }}'
-  known_hosts:
-    name: "{{ vm_ip }}"
-    key: "{{ keyscan.stdout }}"
-    path: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
-  when: 
-    - not keyscan | skipped
+- name: Ensure SSH Key exists or create it
+  user:
+    name: "{{ ansible_user }}"
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: "{{ ssh_key_file }}"
+    state: present
 
 - name: Trying to log into VM (using ssh key)
-  ping:
+  local_action: shell ssh -q  -o BatchMode=yes {{ ansible_user }}@{{ vm_ip }} "echo success"
+  ignore_errors: yes
   register: test_login
+  changed_when: false
 
-#- name: Setting Hostname
-#  delegate_to: "{{ vm_name }}"
-#  hostname:
-#    name: "{{ vm_name }}"
+- name: "Upload SSH public key to {{ vm_ip }} for {{ ansible_user }}"
+  local_action: "shell sshpass -p {{ vm_admin_password }} ssh-copy-id -i {{ ssh_key_file }} {{ ansible_user }}@{{ vm_ip }}"
+   when: test_login | failed
+
+- name: Trying to log into VM (using ssh key)
+  local_action: shell ssh -q  -o BatchMode=yes {{ vm_ip }} "echo success"
+  register: test_login2
+  failed_when: "'FAILED' in test_login2.stderr"
+  when: test_login | failed
+
+- debug:
+    msg: "Connection success"
+  when: test_login2 | success
+
 
