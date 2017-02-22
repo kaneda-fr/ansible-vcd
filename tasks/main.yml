@@ -59,11 +59,24 @@
 
 - name: Ensure SSH Key exists or create it
   user:
-    name: "{{ ansible_user }}"
+    name: "{{ lookup('env','USER') }}"
     generate_ssh_key: yes
     ssh_key_bits: 2048
     ssh_key_file: "{{ ssh_key_file }}"
     state: present
+
+- name: get SSH public key
+  shell: "ssh-keyscan {{ vm_ip }} | grep -v  '#.*' | head -1"
+  register: keyscan
+  changed_when: False
+
+- name: Add/update the public key in the '{{ ssh_known_hosts_file }}'
+  known_hosts:
+    name: "{{ vm_ip }}"
+    key: "{{ keyscan.stdout }}"
+    path: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
+  when: 
+    - not keyscan | skipped
 
 - name: Trying to log into VM (using ssh key)
   local_action: shell ssh -q  -o BatchMode=yes {{ ansible_user }}@{{ vm_ip }} "echo success"
