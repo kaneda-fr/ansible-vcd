@@ -85,7 +85,7 @@
   changed_when: false
 
 - name: "Upload SSH public key to {{ vm_ip }} for {{ ansible_user }}"
-  local_action: "shell sshpass -p {{ vm_admin_password }} ssh-copy-id -i {{ ssh_key_file }} {{ ansible_user }}@{{ vm_ip }}"
+  local_action: "shell sshpass -p '{{ vm_admin_password }}' ssh-copy-id -i {{ ssh_key_file }} {{ ansible_user }}@{{ vm_ip }}"
   when: test_login | failed
 
 - name: Trying to log into VM (using ssh key)
