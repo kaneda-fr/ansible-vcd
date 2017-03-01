@@ -51,6 +51,25 @@
     #Sleep available from version 2.3
     #sleep: 10
 
+- name: Retrieve VM infos
+  vca_vapp:
+    state: present
+    operation: noop
+
+    host: "{{ vcd_url }}"
+    org: "{{ org_name }}"
+    vdc_name: "{{ vdc_name }}"
+    username: "{{ vcd_username }}"
+    password: "{{ vcd_pwd }}"
+    api_version: '5.6'
+    service_type: vcd
+
+    vapp_name: "{{ vm_name }}"
+
+- fail:
+    msg: "Cannot retrieve vm_admin_password"
+  when: vm_admin_password is undefined
+
 - name: Ensure .ssh directory exists
   file:
     path: "{{ lookup('env','HOME') + '/.ssh' }}"
