@@ -44,7 +44,7 @@
 
 - name: Waiting until remote system is reachable/usable (for VM to boot)
   wait_for_connection:
-    timeout: "{{ check_connection_timeout }}"
+    connect_timeout: "{{ check_connection_timeout }}"
     delay: "{{ check_connection_delay }}"
     sleep: "{{ check_connection_sleep }}"
 
