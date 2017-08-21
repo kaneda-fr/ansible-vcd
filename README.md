@@ -35,6 +35,19 @@ state: 'configures teh state of the VM/vApp' - must one of the allowed valued fo
 vm_cpu: 'number of vCPU for the VM'
 vm_mem: 'VM RAM in GB'
 
+Other variables that can be overridden:
+
+    check_connection_timeout: 600
+
+Change the 'timeout' param of 'wait_for_connection' module. Default is 600 seconds (same as 'wait_for_connection' module default).
+
+    check_connection_delay: 0
+
+Change the 'delay' param of 'wait_for_connection' module. Default is 0 second (same as 'wait_for_connection' module default).
+
+    check_connection_sleep: 1
+
+Change the 'sleep' param of 'wait_for_connection' module. Default is 1 second (same as 'wait_for_connection' module default).
 
 Dependencies
 ------------
