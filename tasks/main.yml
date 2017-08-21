@@ -42,9 +42,12 @@
 
     vapp_name: "{{ vm_name }}"
 
-- name: Waiting until remote system is reachable/usable (for VM to boot)
-  wait_for_connection:
-    connect_timeout: "{{ check_connection_timeout }}"
+- name: Waiting for VM to boot
+  wait_for:
+    port: 22
+    host: "{{ vm_ip }}"
+    search_regex: SSH
+    timeout: "{{ check_connection_timeout }}"
     delay: "{{ check_connection_delay }}"
     sleep: "{{ check_connection_sleep }}"
 
