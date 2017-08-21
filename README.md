@@ -37,17 +37,17 @@ vm_mem: 'VM RAM in GB'
 
 Other variables that can be overridden:
 
-    check_connection_timeout: 600
+    check_connection_timeout: 300
 
-Change the 'timeout' param of 'wait_for_connection' module. Default is 600 seconds (same as 'wait_for_connection' module default).
+Change the 'timeout' param of 'wait_for' module. Default is 300 seconds (same as 'wait_for' module default).
 
     check_connection_delay: 0
 
-Change the 'delay' param of 'wait_for_connection' module. Default is 0 second (same as 'wait_for_connection' module default).
+Change the 'delay' param of 'wait_for' module. Default is 0 second (same as 'wait_for' module default).
 
     check_connection_sleep: 1
 
-Change the 'sleep' param of 'wait_for_connection' module. Default is 1 second (same as 'wait_for_connection' module default).
+Change the 'sleep' param of 'wait_for' module. Default is 1 second (same as 'wait_for' module default).
 
 Dependencies
 ------------
