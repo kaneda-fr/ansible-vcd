@@ -2,3 +2,12 @@
 # defaults file for ansible-vcd
 
 ssh_key_file: ".ssh/id_rsa"
+
+# To override 'timeout' param of 'wait_for' module:
+check_connection_timeout: 300
+
+# To override 'delay' param of 'wait_for' module:
+check_connection_delay: 0
+
+# To override 'sleep' param of 'wait_for' module:
+check_connection_sleep: 1

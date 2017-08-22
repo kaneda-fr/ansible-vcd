@@ -42,14 +42,14 @@
 
     vapp_name: "{{ vm_name }}"
 
-- name: Waiting for VM to boot (min 90s)
+- name: Waiting for VM to boot
   wait_for:
     port: 22
     host: "{{ vm_ip }}"
     search_regex: SSH
-    #delay: 90
-    #Sleep available from version 2.3
-    #sleep: 10
+    timeout: "{{ check_connection_timeout }}"
+    delay: "{{ check_connection_delay }}"
+    sleep: "{{ check_connection_sleep }}"
 
 - name: Retrieve VM infos
   vca_vapp:
@@ -94,7 +94,7 @@
     name: "{{ vm_ip }}"
     key: "{{ keyscan.stdout }}"
     path: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
-  when: 
+  when:
     - not keyscan | skipped
 
 - name: Trying to log into VM (using ssh key)
