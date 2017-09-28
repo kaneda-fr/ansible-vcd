@@ -1,8 +1,6 @@
 ---
 # defaults file for ansible-vcd
 
-ssh_key_file: ".ssh/id_rsa"
-
 # To override 'timeout' param of 'wait_for' module:
 check_connection_timeout: 300
 
@@ -11,3 +9,20 @@ check_connection_delay: 0
 
 # To override 'sleep' param of 'wait_for' module:
 check_connection_sleep: 1
+
+# SSH Proxy Command Options:
+#ansible_ssh_common_args: '{{ ssh_args }} -o ProxyCommand="ssh -W %h:%p -q -p {{ ssh_jump_port }} {{ ssh_jump_user }}@{{ ssh_jump_ip }}"'
+
+# Default SSH arguments, used to switch known hosts file:
+ssh_args: '-o "UserKnownHostsFile {{ ssh_known_hosts }}"'
+
+# Default known hosts file location.
+ssh_known_hosts: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
+
+# Default location of the id_rsa key file:
+ssh_key_file: "{{ lookup('env','HOME') + '/.ssh/id_rsa' }}"
+
+# SSH Proxy variables:
+#ssh_jump_ip: 'x.x.x.x'
+#ssh_jump_user: 'ansible'
+#ssh_jump_port: 22
