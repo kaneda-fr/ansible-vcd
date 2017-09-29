@@ -26,7 +26,6 @@
 
 - debug:
     msg: "VM {{ inventory_hostname }} got IP {{vm_ip}}"
-  ignore_errors: true
 
 - name: PowerOn VM
   vca_vapp:
