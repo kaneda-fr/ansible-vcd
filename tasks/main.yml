@@ -85,7 +85,7 @@
     state: present
 
 - name: get SSH public key
-  shell: "ssh-keyscan {{ vm_ip }} | grep -v  '#.*' | head -1"
+  shell: "ssh-keyscan {{ vm_ip }} | grep -v  '#.*' | grep rsa"
   register: keyscan
   changed_when: False
 
