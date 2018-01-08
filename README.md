@@ -49,10 +49,39 @@ Change the 'delay' param of 'wait_for' module. Default is 0 second (same as 'wai
 
 Change the 'sleep' param of 'wait_for' module. Default is 1 second (same as 'wait_for' module default).
 
+Use of SSH jump server
+----------------------
+
+To use this role via an SSH jump server, the following variables will need to be overriden:
+
+    ansible_ssh_common_args: '{{ ssh_args }} -o ProxyCommand="ssh -W %h:%p -q -p {{ ssh_jump_port }} {{ ssh_jump_user }}@{{ ssh_jump_ip }}"'
+    
+General purpose setting to allow SSH proxying to occur on all Ansible SSH commands. 
+
+    ssh_args: ''
+
+Extra arguments used to create an ssh connection, for example can be used to point to a different known_hosts file, using ssh_args: '-o "UserKnownHostsFile {{ ssh_known_hosts }}"'
+    
+    ssh_known_hosts: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
+
+Used to point ssh to a different known hosts file.
+
+    ssh_jump_ip: 'x.x.x.x'
+
+Used to specify the ssh jump server's ip address.
+
+    ssh_jump_user: 'ansible'
+
+The ssh user for the jump server.
+
+    ssh_jump_port: 22
+
+The ssh port for the jump server.
+
 Dependencies
 ------------
 
-This roel doesn't depend on any other galaxy roles
+This role doesn't depend on any other galaxy roles
 
 Example Playbook
 ----------------

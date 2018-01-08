@@ -24,8 +24,8 @@
 
   register: vapp
 
-#- debug:
-#        msg: "VM {{ inventory_hostname }} got IP {{vm_ip}}"
+- debug:
+    msg: "VM {{ inventory_hostname }} got IP {{vm_ip}}"
 
 - name: PowerOn VM
   vca_vapp:
@@ -42,7 +42,7 @@
 
     vapp_name: "{{ vm_name }}"
 
-- name: Waiting for VM to boot
+- name: Waiting for VM to boot (min 90s)
   wait_for:
     port: 22
     host: "{{ vm_ip }}"
@@ -50,6 +50,15 @@
     timeout: "{{ check_connection_timeout }}"
     delay: "{{ check_connection_delay }}"
     sleep: "{{ check_connection_sleep }}"
+  when: ssh_jump_ip is not defined
+
+- name: Waiting for VM to boot (via jump server)
+  shell: ssh -q -p {{ ssh_jump_port }} {{ ssh_jump_user }}@{{ ssh_jump_ip }} "if echo -n > /dev/tcp/{{ vm_ip }}/22; then echo success; fi"
+  register: wait_boot
+  until: wait_boot.stdout.find("success") != -1
+  retries: 5
+  delay: 5
+  when: ssh_jump_ip is defined
 
 - name: Retrieve VM infos
   vca_vapp:
@@ -88,33 +97,77 @@
   shell: "ssh-keyscan {{ vm_ip }} | grep -v  '#.*' | grep rsa"
   register: keyscan
   changed_when: False
+  when: ssh_jump_ip is not defined
 
-- name: Add/update the public key in the '{{ ssh_known_hosts_file }}'
+- name: get SSH public key (via jump)
+  shell: ssh -p {{ ssh_jump_port }} -q {{ ssh_jump_user }}@{{ ssh_jump_ip }} "ssh-keyscan {{ vm_ip }} | grep -v '#.*' | head -1"
+  register: keyscan
+  changed_when: False
+  when: ssh_jump_ip is defined
+
+
+- name: Add/update the public key in the known hosts file
   known_hosts:
     name: "{{ vm_ip }}"
     key: "{{ keyscan.stdout }}"
-    path: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
+    path: "{{ ssh_known_hosts }}"
   when:
     - not keyscan | skipped
 
 - name: Trying to log into VM (using ssh key)
-  local_action: shell ssh -q  -o BatchMode=yes {{ ansible_user }}@{{ vm_ip }} "echo success"
+  local_action: shell ssh {{ ssh_args }} -q  -o BatchMode=yes {{ ansible_user }}@{{ vm_ip }} "echo success"
   ignore_errors: yes
   register: test_login
   changed_when: false
+  when: ssh_jump_ip is not defined
+
+- name: Trying to log into VM (using ssh key) (using jump server)
+  local_action: shell ssh {{ ansible_ssh_common_args }} -q -o BatchMode=yes {{ ansible_user }}@{{ vm_ip }} "echo success"
+  ignore_errors: yes
+  register: test_login
+  changed_when: false
+  when: ssh_jump_ip is defined
+
 
 - name: "Upload SSH public key to {{ vm_ip }} for {{ ansible_user }}"
   local_action: "shell sshpass -p '{{ vm_admin_password }}' ssh-copy-id -i {{ ssh_key_file }} {{ ansible_user }}@{{ vm_ip }}"
-  when: test_login | failed
+  when: (test_login | failed) and ssh_jump_ip is not defined
+
+# Write the password to a file, so that if the password has "$", we can handle this correctly (there must be a better way of doing this!)
+- name: "Upload SSH public key to {{ vm_ip }} for {{ ansible_user }} - via jump server"
+  shell: |
+    scp -P {{ ssh_jump_port }} {{ ssh_key_file }} {{ ssh_jump_user }}@{{ ssh_jump_ip }}:key.{{ ansible_user }}
+    scp -P {{ ssh_jump_port }} {{ ssh_key_file }}.pub {{ ssh_jump_user }}@{{ ssh_jump_ip }}:key.{{ ansible_user }}.pub
+    echo '{{ vm_admin_password }}' > {{ vm_ip }}.pwd
+    echo '{{ keyscan.stdout }}' > {{ vm_ip }}.host_key 
+    scp -P {{ ssh_jump_port }} {{ vm_ip }}.pwd {{ ssh_jump_user }}@{{ ssh_jump_ip }}:.
+    scp -P {{ ssh_jump_port }} {{ vm_ip }}.host_key {{ ssh_jump_user }}@{{ ssh_jump_ip }}:.
+    ssh -q -p {{ ssh_jump_port }} {{ ssh_jump_user }}@{{ ssh_jump_ip }} "
+      echo \"Checking host entry on jump server\"
+      if grep \"{{ vm_ip }}\" ~/.ssh/known_hosts; then
+        echo \"Found entry - removing\";
+        ssh-keygen -R {{ vm_ip }};
+      fi;
+      echo \"Adding host key\";
+      cat {{ vm_ip }}.host_key >> ~/.ssh/known_hosts;
+      sshpass -p \`cat {{ vm_ip }}.pwd\` ssh-copy-id -i key.{{ ansible_user }}.pub {{ ansible_user }}@{{ vm_ip }};
+      rm {{ vm_ip }}.host_key key.{{ ansible_user }} key.{{ ansible_user }}.pub {{ vm_ip }}.pwd"
+    rm {{ vm_ip }}.pwd {{ vm_ip }}.host_key
+  when: (test_login | failed) and ssh_jump_ip is defined
 
 - name: Trying to log into VM (using ssh key)
-  local_action: shell ssh -q  -o BatchMode=yes {{ vm_ip }} "echo success"
+  local_action: shell ssh {{ ssh_args }} -q  -o BatchMode=yes {{ vm_ip }} "echo success"
   register: test_login2
   failed_when: "'FAILED' in test_login2.stderr"
-  when: test_login | failed
+  when: (test_login | failed) and ssh_jump_ip is not defined
+
+- name: Trying to log into VM (using ssh key) (using jump server)
+  local_action: shell ssh {{ ansible_ssh_common_args }} -q -o BatchMode=yes {{ ansible_user }}@{{ vm_ip }} "echo success"
+  register: test_login
+  changed_when: false
+  when: ssh_jump_ip is defined
+
 
 - debug:
     msg: "Connection success"
   when: test_login2 | success
-
-
