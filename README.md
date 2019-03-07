@@ -49,6 +49,10 @@ Change the 'delay' param of 'wait_for' module. Default is 0 second (same as 'wai
 
 Change the 'sleep' param of 'wait_for' module. Default is 1 second (same as 'wait_for' module default).
 
+    check_ssl_certs: False
+
+If the certificates of the authentication is to be verified.
+
 Dependencies
 ------------
 

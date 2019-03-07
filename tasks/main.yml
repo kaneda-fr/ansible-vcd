@@ -22,6 +22,8 @@
     vm_memory: "{{ vm_mem }}"
     network_name: "{{ vm_net }}"
 
+    verify_certs: "{{ check_ssl_certs }}"
+
   register: vapp
 
 #- debug:
@@ -39,6 +41,8 @@
     password: "{{ vcd_pwd }}"
     api_version: '5.6'
     service_type: vcd
+
+    verify_certs: "{{ check_ssl_certs }}"
 
     vapp_name: "{{ vm_name }}"
 
@@ -63,6 +67,8 @@
     password: "{{ vcd_pwd }}"
     api_version: '5.6'
     service_type: vcd
+
+    verify_certs: "{{ check_ssl_certs }}"
 
     vapp_name: "{{ vm_name }}"
 
