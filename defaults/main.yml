@@ -11,3 +11,6 @@ check_connection_delay: 0
 
 # To override 'sleep' param of 'wait_for' module:
 check_connection_sleep: 1
+
+# If the certificates of the authentication is to be verified.
+check_ssl_certs: False
